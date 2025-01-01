@@ -1,0 +1,42 @@
+name: Checkov Scan
+
+on:
+  workflow_call:
+
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  checkov:
+    name: Run Checkov Scan (Terraform & Kubernetes)
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Install Checkov
+      - name: Install Checkov
+        run: pip install checkov
+
+      # Step 3: Run Checkov scan for Terraform files
+      - name: Run Checkov scan for Terraform
+        run: checkov -d . --framework terraform --output json > checkov-terraform-report.json
+
+      # Step 5: Run Checkov scan for Kubernetes Framework (K8s-specific checks)
+      - name: Run Checkov scan for Kubernetes Framework
+        run: checkov -d . --framework kubernetes --output json > checkov-kubernetes-framework-report.json
+
+      # Step 6: Upload Checkov results as artifacts
+      - name: Upload Checkov results as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: checkov-scan-results
+          path: |
+            checkov-terraform-report.json
+            checkov-kubernetes-framework-report.json
